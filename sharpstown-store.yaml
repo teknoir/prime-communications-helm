@@ -1,0 +1,44 @@
+nvr:
+  defaults:
+    image:
+      # Running on Jetson Orin
+      tag: ds7-gst1.24.7-l4t
+    # Deprecated in favor of ORG TREE
+    location:
+      country: "us"
+      region: "southwest"
+      branch: "texas"
+      facility: "sharpstown"
+      site: "store"
+      zone: "sharpstown"
+      group: "poc"
+  instances:
+    - name: sharpstown-back-room
+      camera:
+        uri: rtsp://rtsp:Teknoir%231@10.0.0.200:554/trackID=1&streamID=1
+
+    - name: sharpstown-back-room-safe
+      camera:
+        uri: rtsp://rtsp:Teknoir%231@10.0.0.200:554/trackID=2&streamID=1
+
+    - name: sharpstown-instore-back-view
+      camera:
+        uri: rtsp://rtsp:Teknoir%231@10.0.0.200:554/trackID=3&streamID=1
+
+    - name: sharpstown-in-store-display-view
+      camera:
+        uri: rtsp://rtsp:Teknoir%231@10.0.0.200:554/trackID=4&streamID=1
+
+    - name: sharpstown-front-door-entry
+      camera:
+        uri: rtsp://rtsp:Teknoir%231@10.0.0.200:554/trackID=5&streamID=1
+
+    - name: sharpstown-safe-crop
+      camera:
+        uri: rtsp://rtsp:Teknoir%231@10.0.0.200:554/trackID=2&streamID=1
+        pipeline: rtspsrc protocols=tcp timeout=10000000 location={{.uri}} latency=1000 ! queue ! rtpjitterbuffer latency=1500 ! queue ! rtph265depay ! queue ! nvv4l2decoder ! queue ! nvvideoconvert ! video/x-raw,width=1920,height=1080 ! queue ! nvvideoconvert ! videocrop bottom=500 left=895 right=625 top=100 ! queue ! nvvideoconvert ! video/x-raw(memory:NVMM),width=400,height=480 ! queue ! m.sink_0 nvstreammux name=m batch-size=1 width=400 height=480 ! queue ! nvinferserver name=nvis config-file-path=/models/safe_classifier_config.pbtxt unique-id=6 interval=5 ! queue ! nvstreamdemux name=d d.src_0 ! queue ! tee name=tee2 tee2. ! queue ! nvjpegenc quality=55 ! queue ! appsink sync=0 name=mqttsink tee2. ! queue ! nvvideoconvert ! video/x-raw(memory:NVMM),width=800,height=960 ! queue ! nvvideoconvert ! queue ! nvv4l2h265enc iframeinterval=10 ! queue ! h265parse ! queue ! splitmuxsink sink=nvdsfilesink muxer-properties=properties,streamable=true location=/app/videos/{{.camera_id}}_%05d.mp4 max-size-time=15000000000 max-files=160
+
+observatory-pipeline:
+  defaults:
+    labels:
+      deviceID: "teknoir-00002"
