@@ -48,7 +48,7 @@ observatory-pipeline:
     # ALERTS
     - stream: loitering
     - stream: person-down
-    - stream: safe
+    - stream: safe-open
     # ALERT PROCESSING
     - stream: update-alerts
     - stream: make-clip
