@@ -4,7 +4,8 @@ triton:
       image:  us-docker.pkg.dev/teknoir/gcr.io/rtdetr-triton:latest
     - name: up-down-classifier
       image:  us-docker.pkg.dev/teknoir/gcr.io/up-down-classifier-triton:latest
-    # TODO Add Safe Classifier
+    - name: safe-classifier
+      image: us-docker.pkg.dev/teknoir/gcr.io/safe-classifier-triton:latest
 
 nvr:
   defaults:
