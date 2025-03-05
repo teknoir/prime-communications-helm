@@ -3,6 +3,26 @@ entries:
   prime-communications:
   - apiVersion: v2
     appVersion: 1.0.0
+    created: "2025-03-05T12:14:37.239503382Z"
+    dependencies:
+    - name: nvr
+      repository: https://teknoir.github.io/nvr-helm
+      version: 0.2.7
+    - name: triton
+      repository: https://teknoir.github.io/triton-helm
+      version: 0.1.2
+    - name: observatory-pipeline
+      repository: https://teknoir.github.io/observatory-pipeline-helm
+      version: 0.1.0
+    description: A Helm chart for Prime Communications
+    digest: 8c0f8965ecfbdd9c9c5d285c0aa683def6df6084627eb02c4b2647e7da7c29c1
+    name: prime-communications
+    type: application
+    urls:
+    - https://github.com/teknoir/prime-communications-helm/releases/download/prime-communications-0.5.0/prime-communications-0.5.0.tgz
+    version: 0.5.0
+  - apiVersion: v2
+    appVersion: 1.0.0
     created: "2024-11-28T15:34:06.879436732Z"
     dependencies:
     - name: nvr
@@ -93,4 +113,4 @@ entries:
     urls:
     - https://github.com/teknoir/prime-communications-helm/releases/download/prime-communications-0.2.7/prime-communications-0.2.7.tgz
     version: 0.2.7
-generated: "2024-11-28T15:34:06.879457791Z"
+generated: "2025-03-05T12:14:37.239525683Z"
