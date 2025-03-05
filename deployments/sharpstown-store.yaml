@@ -7,6 +7,7 @@ metadata:
 spec:
   repo: https://teknoir.github.io/prime-communications-helm
   chart: prime-communications
+  version: 0.5.0
   targetNamespace: default
   valuesContent: |-
     nvr:
@@ -138,3 +139,7 @@ spec:
             video:
               mountSegmentPath: true
               mountClipTempPath: true
+      keydb:
+        image:
+          # The Orin is an ARM64 device
+          tag: "arm64_v6.3.4"
