@@ -3,19 +3,16 @@ name: prime-communications
 description: A Helm chart for Prime Communications
 
 type: application
-version: 0.4.1
+version: 0.5.0
 appVersion: "1.0.0"
 
 dependencies:
   - name: nvr
-    version: 0.2.5
+    version: 0.2.7
     repository: https://teknoir.github.io/nvr-helm
   - name: triton
     version: 0.1.2
     repository: https://teknoir.github.io/triton-helm
-  - name: historian
-    version: 0.0.7
-    repository: https://teknoir.github.io/historian-helm
   - name: observatory-pipeline
-    version: 0.0.5
+    version: 0.1.0
     repository: https://teknoir.github.io/observatory-pipeline-helm

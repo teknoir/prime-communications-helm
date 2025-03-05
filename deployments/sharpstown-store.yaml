@@ -1,0 +1,140 @@
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: sharpstown-0026
+  namespace: default
+spec:
+  repo: https://teknoir.github.io/prime-communications-helm
+  chart: prime-communications
+  targetNamespace: default
+  valuesContent: |-
+    nvr:
+      defaults:
+        image:
+        # Running on Jetson Orin
+          tag: ds7-gst1.24.7-l4t
+        # Deprecated in favor of ORG TREE
+        location:
+          country: "us"
+          region: "southwest"
+          branch: "texas"
+          facility: "sharpstown"
+          site: "store"
+          zone: "sharpstown"
+          group: "poc"
+        # Add nvdsosd (On Screen Display)
+        camera: 
+          pipeline:
+            rtspsrc protocols=tcp timeout=10000000 location={{.uri}} latency=1000 ! queue ! rtpjitterbuffer latency=1500 ! queue ! rtph265depay ! queue ! nvv4l2decoder ! queue ! nvvideoconvert ! video/x-raw(memory:NVMM),width=1920,height=1080 ! queue ! m.sink_0 nvstreammux name=m batch-size=4 width=1920 height=1080 ! queue ! nvinferserver name=nvis config-file-path=/models/rtdetr_config.pbtxt unique-id=2 interval=15 ! queue ! nvinferserver config-file-path=/models/up_down_classifier_config.pbtxt unique-id=5 ! queue ! nvtracker tracker-width=640 tracker-height=384 ll-lib-file=/opt/nvidia/deepstream/deepstream/lib/libnvds_nvmultiobjecttracker.so ll-config-file=/models/config_tracker_NvDeepSORT.yml compute-hw=2 gpu-id=0 ! queue ! nvstreamdemux name=d d.src_0 ! queue ! tee name=t t. ! queue ! nvvideoconvert ! video/x-raw(memory:NVMM),width=1920,height=1080 ! nvv4l2h265enc iframeinterval=10 ! queue ! h265parse ! queue ! splitmuxsink sink=nvdsfilesink muxer-properties=properties,streamable=true location=/app/videos/{{.camera_id}}_%05d.mp4 max-size-time=15000000000 max-files=160 t. ! queue ! nvdsanalytics config-file=/app/config/config_nvdsanalytics.txt ! queue ! nvdsosd display-bbox=0 ! queue ! nvvideoconvert ! video/x-raw(memory:NVMM),width=[1,1920],height=[1,1080],pixel-aspect-ratio=1/1 ! nvvideoconvert ! queue ! nvjpegenc quality=55 ! appsink sync=0 name=mqttsink t. ! nvvideoconvert compute-hw=GPU ! video/x-raw,format=RGB,width=[1,640],height=[1,360],pixel-aspect-ratio=1/1 ! nvvideoconvert ! motioncells threshold=0.00005 gridx=32 gridy=18 ! fakesink
+      instances:
+        - name: sharpstown-back-room
+          camera:
+            uri: rtsp://rtsp:Teknoir%231@10.0.0.200:554/trackID=1&streamID=1
+
+        - name: sharpstown-back-room-safe
+          camera:
+            uri: rtsp://rtsp:Teknoir%231@10.0.0.200:554/trackID=2&streamID=1
+          nvdsanalytics:
+            enabled: true
+            config: |
+              [property]
+              enable=1
+              config-width=3840
+              config-height=2160
+              osd-mode=2
+              display-font-size=15
+
+              [roi-filtering-stream-0]
+              enable=1
+              roi-Safe-Access-0=1712;1150;2550;1078;2724;1460;1786;1556
+
+        - name: sharpstown-instore-back-view
+          camera:
+            uri: rtsp://rtsp:Teknoir%231@10.0.0.200:554/trackID=3&streamID=1
+          nvdsanalytics:
+            enabled: true
+            config: |
+              [property]
+              enable=1
+              config-width=3840
+              config-height=2160
+              osd-mode=2
+              display-font-size=15
+
+              [roi-filtering-stream-0]
+              enable=1
+              roi-Product-Category-0=384;282;478;670;66;940;6;758;6;494
+              roi-Product-Category-1=182;1198;538;922;494;788;122;1048
+              roi-Product-Category-2=588;716;628;866;948;680;930;548
+              roi-Product-Category-3=926;130;1004;642;1262;502;1210;54
+              roi-Product-Category-4=2932;1352;3154;1332;3070;868;2906;888
+              roi-Product-Category-5=3106;1510;3454;614;3838;1572;3812;2128;3096;2148
+
+        - name: sharpstown-in-store-display-view
+          camera:
+            uri: rtsp://rtsp:Teknoir%231@10.0.0.200:554/trackID=4&streamID=1
+          nvdsanalytics:
+            enabled: true
+            config: |
+              [property]
+              enable=1
+              config-width=3840
+              config-height=2160
+              osd-mode=2
+              display-font-size=15
+
+              [roi-filtering-stream-0]
+              enable=1
+              roi-Product-Category-0=510;718;818;748;750;878;464;866
+              roi-Product-Category-1=858;744;1102;778;1050;894;806;878
+              roi-Product-Category-2=1334;518;1448;556;1348;796;1222;772
+              roi-Product-Category-3=1470;576;1568;608;1484;808;1380;800
+              roi-Product-Category-4=1586;612;1668;642;1594;818;1498;816;1500;816
+              roi-Product-Category-5=1856;1958;2006;1970;1880;2156;1694;2154
+              roi-Product-Category-6=1988;1786;2128;1794;2250;1578;2134;1568
+              roi-Product-Category-7=2260;1412;2352;1408;2274;1546;2178;1530
+              [line-crossing-stream-0]
+              enable=1
+              line-crossing-Entry-0=217;888;260;1084;27;1135;493;1033
+              line-crossing-Exit-0=302;1279;260;1084;493;1033;27;1135
+
+        - name: sharpstown-front-door-entry
+          camera:
+            uri: rtsp://rtsp:Teknoir%231@10.0.0.200:554/trackID=5&streamID=1
+
+        - name: sharpstown-safe-crop
+          camera:
+            uri: rtsp://rtsp:Teknoir%231@10.0.0.200:554/trackID=2&streamID=1
+            pipeline: rtspsrc protocols=tcp timeout=10000000 location={{.uri}} latency=1000 ! queue ! rtpjitterbuffer latency=1500 ! queue ! rtph265depay ! queue ! nvv4l2decoder ! queue ! nvvideoconvert ! video/x-raw,width=1920,height=1080 ! queue ! nvvideoconvert ! videocrop bottom=500 left=895 right=625 top=100 ! queue ! nvvideoconvert ! video/x-raw(memory:NVMM),width=400,height=480 ! queue ! m.sink_0 nvstreammux name=m batch-size=1 width=400 height=480 ! queue ! nvinferserver name=nvis config-file-path=/models/safe_classifier_config.pbtxt unique-id=6 interval=5 ! queue ! nvstreamdemux name=d d.src_0 ! queue ! tee name=tee2 tee2. ! queue ! nvjpegenc quality=55 ! queue ! appsink sync=0 name=mqttsink tee2. ! queue ! nvvideoconvert ! video/x-raw(memory:NVMM),width=800,height=960 ! queue ! nvvideoconvert ! queue ! nvv4l2h265enc iframeinterval=10 ! queue ! h265parse ! queue ! splitmuxsink sink=nvdsfilesink muxer-properties=properties,streamable=true location=/app/videos/{{.camera_id}}_%05d.mp4 max-size-time=15000000000 max-files=160
+
+    observatory-pipeline:
+      defaults:
+        labels:
+          deviceID: "teknoir-00002"
+        image:
+          tag: clickhouse-20250225-113447    
+      streams:
+        - stream: update-frame-rate-control
+        - stream: record-detections
+        - stream: update-movements
+        # ALERTS
+        - stream: loitering
+        - stream: person-down
+        - stream: safe-open
+        # ALERT PROCESSING
+        - stream: update-alerts
+      file-transfer:
+        defaults:
+          image:
+            tag: clickhouse-20250225-113447
+        streams:
+          - stream: transfer-file
+            video:
+              mountSegmentPath: true
+              mountClipTempPath: true
+          - stream: prepare-file
+            debugLevel: DEBUG
+            video:
+              mountSegmentPath: true
+              mountClipTempPath: true
